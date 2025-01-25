@@ -1,6 +1,6 @@
 import User from "../models/user.models.js";
 import jwt from 'jsonwebtoken'
-
+import bcrypt from "bcrypt";
 
 
 const generateAccessToken = (user) => {
@@ -29,4 +29,31 @@ const registerUser = async (req, res) => {
     res.json({ message: "user registered successfully", data: createUser });
   };
 
-  export {registerUser}
+
+  // login user
+const longinUser = async (req, res) => {
+    const { email, password } = req.body
+    if (!email) return res.status(400).json({ message: "email is required" })
+    if (!password) return res.status(400).json({ message: "password is required" })
+    const user = await User.findOne({ email })
+    if (!user) return res.status(404).json({ message: 'not found' })
+    const isPasswordValid = await bcrypt.compare(password, user.password)
+    if (!isPasswordValid) return res.status(404).json({ message: "is not valid password" })
+
+    const accessToken = generateAccessToken(user)
+
+    
+    const refreshToken = generateRefreshToken(user);
+    res.cookie("refreshToken", refreshToken, {   httpOnly: true,
+        secure: true,
+        sameSite: "None",
+      });
+      
+    res.json({
+        message: "user login successfully",
+        accessToken,
+        refreshToken,
+        data: user,
+    })
+}
+  export {registerUser,longinUser}
