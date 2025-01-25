@@ -12,7 +12,7 @@ const generateRefreshToken = (user) => {
 
 
 const registerUser = async (req, res) => {
-    const { email, password } = req.body;
+    const { fullname,email, password,role } = req.body;
     
     if (!fullname) return res.status(400).json({ message: "fullname required" });
     if (!email) return res.status(400).json({ message: "email required" });
