@@ -58,4 +58,50 @@ res.status(200).json({message:"get by cnic beneficiary",beneficiary})
     }
 }
 
-export { Beneficiaryregister,Beneficiariesgetall,getBeneficiarybycnic};
+// update beneficiaries
+const updateBeneficiaries = async (req, res) => {
+    const { cnic } = req.params;
+    const { status, remarks } = req.body; // Assume you're updating these fields
+  
+    // Validate status or remarks if they are provided
+    if (!status && !remarks) {
+      return res.status(400).json({ message: "At least one field (status or remarks) must be provided for update." });
+    }
+  
+    try {
+      // Only update the fields that are provided in the request body
+      const updatedFields = {};
+      if (status) updatedFields.status = status;
+      if (remarks) updatedFields.remarks = remarks;
+  
+      const beneficiary = await Beneficiary.findOneAndUpdate(
+        { cnic },
+        { ...updatedFields, updatedAt: Date.now() }, // Update status, remarks and set the updatedAt field
+        { new: true }
+      );
+  
+      if (!beneficiary) {
+        return res.status(404).json({ message: "Beneficiary not found." });
+      }
+  
+      res.status(200).json({ message: "Beneficiary updated successfully.", beneficiary });
+  
+    } catch (error) {
+      console.error("Error updating beneficiary:", error);
+      res.status(500).json({ message: "Server error. Please try again later." });
+    }
+  };
+  
+  const deletebeneficiary=async(req,res)=>{
+    const {cnic}=req.params
+    try {
+        const beneficiary=await Beneficiary.findOneAndDelete({cnic})
+        if(!beneficiary)return res.status(404).json({message:"beneficiary not found"})
+            res.status(200).json({message:"beneficiary deleted successfully"})
+    } catch (error) {
+        console.error('error updating',error);
+        
+    }
+  }
+
+export { Beneficiaryregister,Beneficiariesgetall,getBeneficiarybycnic,updateBeneficiaries,deletebeneficiary};
