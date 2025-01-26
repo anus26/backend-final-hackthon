@@ -1,9 +1,13 @@
 import Beneficiary from "../models/beneficiary.models.js";
-
+import { v4 as uuidv4 } from 'uuid';
+import QRCode from 'qrcode';
 const Beneficiaryregister = async (req, res) => {
   const { cnic, name, phone, address, purpose, department ,status} = req.body; 
-  if (req.is('json') && (!req.body || Object.keys(req.body).length === 0)) {
-    return res.status(400).json({ error: 'Request body is empty or invalid' });
+//   if (req.is('json') && (!req.body || Object.keys(req.body).length === 0)) {
+//     return res.status(400).json({ error: 'Request body is empty or invalid' });
+//   }
+  if (!cnic || !name || !phone || !address || !purpose || !department || !status) {
+    return res.status(400).json({ message: "All fields are required" });
   }
   try {
     const existingBeneficiary = await Beneficiary.findOne({ cnic });
@@ -12,7 +16,8 @@ const Beneficiaryregister = async (req, res) => {
     }
 
     // Generate a unique token for the beneficiary
-    const token = `Token-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    // const token = `Token-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const token = uuidv4();
 
     const beneficiary = new Beneficiary({
       cnic,
@@ -26,7 +31,9 @@ const Beneficiaryregister = async (req, res) => {
     });
 
     await beneficiary.save();
-    res.status(201).json({ message: "Beneficiary registered successfully", beneficiary });
+     // Generate QR code for the token
+     const qrCodeData = await QRCode.toDataURL(token); 
+    res.status(201).json({ message: "Beneficiary registered successfully", beneficiary ,token,QRCode:qrCodeData});
   } catch (error) {
     console.error("Error message", error);
     res.status(500).json({ message: "Server error" });
